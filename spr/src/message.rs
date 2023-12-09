@@ -194,8 +194,9 @@ pub fn build_github_body_for_merging(
         &[
             MessageSection::Summary,
             MessageSection::TestPlan,
-            MessageSection::Reviewers,
-            MessageSection::ReviewedBy,
+            // TODO: Make this optional
+            //MessageSection::Reviewers,
+            //MessageSection::ReviewedBy,
             MessageSection::PullRequest,
         ],
     )
