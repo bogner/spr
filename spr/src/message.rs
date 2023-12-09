@@ -130,16 +130,19 @@ pub fn build_message(
     for section in sections {
         let value = section_texts.get(section);
         if let Some(text) = value {
-            if !result.is_empty() {
-                result.push('\n');
-            }
-
             if section != &MessageSection::Title
                 && section != &MessageSection::Summary
             {
                 // Once we encounter a section that's neither Title nor Summary,
                 // we start displaying the labels.
                 display_label = true;
+            }
+
+            if text.is_empty() {
+                continue;
+            }
+            if !result.is_empty() {
+                result.push('\n');
             }
 
             if display_label {
@@ -313,6 +316,72 @@ Reviewer:    a, b, c"#,
                 (MessageSection::Reviewers, "a, b, c".to_string()),
             ]
             .into()
+        );
+    }
+
+    #[test]
+    fn test_build_commit_message() {
+        assert_eq!(
+            build_commit_message(
+                &[
+                    (MessageSection::Title, "Title".to_string()),
+                    (MessageSection::Summary, "Line 1\nLine 2".to_string()),
+                    (MessageSection::TestPlan, "ran tests".to_string()),
+                    (MessageSection::Reviewers, "a, b, c".to_string()),
+                    (MessageSection::ReviewedBy, "b, d".to_string()),
+                    (
+                        MessageSection::PullRequest,
+                        "https://example.com/123".to_string()
+                    )
+                ]
+                .into()
+            ),
+            "Title\n\n\
+             Line 1\n\
+             Line 2\n\n\
+             Test Plan: ran tests\n\n\
+             Reviewers: a, b, c\n\n\
+             Reviewed By: b, d\n\n\
+             Pull Request: https://example.com/123\n"
+                .to_string()
+        );
+
+        assert_eq!(
+            build_commit_message(
+                &[
+                    (MessageSection::Title, "Title".to_string()),
+                    (MessageSection::Summary, "Line 1\nLine 2".to_string()),
+                    (MessageSection::Reviewers, "a, b, c".to_string()),
+                    (
+                        MessageSection::PullRequest,
+                        "https://example.com/123".to_string()
+                    )
+                ]
+                .into()
+            ),
+            "Title\n\n\
+             Line 1\n\
+             Line 2\n\n\
+             Reviewers: a, b, c\n\n\
+             Pull Request: https://example.com/123\n"
+                .to_string()
+        );
+
+        assert_eq!(
+            build_commit_message(
+                &[
+                    (MessageSection::Title, "Title".to_string()),
+                    (MessageSection::Summary, "".to_string()),
+                    (
+                        MessageSection::PullRequest,
+                        "https://example.com/123".to_string()
+                    )
+                ]
+                .into()
+            ),
+            "Title\n\n\
+             Pull Request: https://example.com/123\n"
+                .to_string()
         );
     }
 }
